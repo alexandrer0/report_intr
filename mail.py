@@ -13,11 +13,15 @@ msg['CC'] = cfg.send_cc
 msg['Subject'] = cfg.send_subject + ri.m[int(ri.mon) - 1] + ' ' + ri.ye
 body = cfg.send_body
 msg.attach(MIMEText(body, 'plain'))
+
+
 def add_file(path):
     with open(path, "rb") as f:
         part = MIMEApplication(f.read())
     part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(path))
     msg.attach(part)
+
+
 add_file(ri.path_2)
 add_file(ri.path_3)
 add_file(ri.path_4)
@@ -25,4 +29,3 @@ add_file(ri.path_4)
 s = smtplib.SMTP('smtp.rosenergo.com')
 s.send_message(msg)
 s.quit()
-
