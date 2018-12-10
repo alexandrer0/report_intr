@@ -63,6 +63,7 @@ GROUP by trunc(target_date, 'month'), section_code'''
 pf_0 = pd.read_sql(query_dd, conn, params={'y': int(ye), 'm': int(mon)})
 vc_pc = pd.read_sql(query_vc, conn, params={'y': int(ye), 'm': int(mon)})
 sec_f = pd.read_sql(query_fact, conn, params={'y': int(ye), 'm': int(mon)})
+conn.close()
 # Создаем отчет
 pf_0.rename(columns={'DD_NUMBER': 'Номер ДД', 'ST_CODE': 'Код Станции Продавца'}, inplace=True)
 dd_1 = dd_0.merge(pf_0, 'left', on=['Номер ДД', 'Код Станции Продавца'])
