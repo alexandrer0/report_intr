@@ -68,7 +68,7 @@ conn.close()
 pf_0.rename(columns={'DD_NUMBER': 'Номер ДД', 'ST_CODE': 'Код Станции Продавца'}, inplace=True)
 dd_1 = dd_0.merge(pf_0, 'left', on=['Номер ДД', 'Код Станции Продавца'])
 dd_1.rename(columns={'DD_FACT': 'ДД факт, кВтч', 'CON_FACT': 'Факт общий по ГТПП/ГТП экспорта, кВт'}, inplace=True)
-dd_1.sort_values(['Номер ДД', 'Код Станции Продавца'])
+dd_1.sort_values(['Номер ДД', 'Код Станции Продавца'], inplace=True)
 # Экспортируем Excel
 dd_1.to_excel(path_1, sheet_name='ДД в НЦЗ', index=False)
 # Создаем отчет для ДФР
