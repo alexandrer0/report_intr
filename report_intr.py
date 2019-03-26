@@ -17,7 +17,7 @@ m = ['январь', 'февраль', 'март', 'апрель', 'май', 'и
 # Корневая папка
 path_0 = cfg.path
 # Собираем путь к исходному реестру ДД
-path_00 = path_0 + 'Данные для расчетов БР/' + ye + '/' + mon + '.' + m[int(mon) - 1] + \
+path_00 = path_0 + 'Данные для расчетов БР/' + ye + '/' + mon + \
           '/Реестр ДД в НЦЗ' + '/DDNCZ_reestr_01.' + mon + '.' + ye + '.xls'
 # Собираем путь к папке с отчетом
 path_1 = path_0 + 'Отчеты коллегам/' + ye + '/' + mon
@@ -89,7 +89,7 @@ dd_1.to_excel(path_11, sheet_name='dd_post', index=False)
 # Создаем отчет по ИнтерРАО
 colum = ['Объем ДД', 'Значение приоритета корректировки', 'Доля ГЭС', 'Доля ТЭС', 'Номер пакета ДД']
 dd_1.drop(colum, axis=1, inplace=True)
-dd_1.drop(dd_1[dd_1['Наименование покупателя по ДД'] != 'ПАО "Интер РАО"'].index, axis=0, inplace=True)
+dd_1.drop(dd_1[dd_1['Код ГТПП Покупателя'] != 'PINTCHIN PINTCHN1'].index, axis=0, inplace=True)
 vc_pc['TARGET_DATE'] = vc_pc['TARGET_DATE'].astype(str)
 sec_f['MONTH'] = sec_f['MONTH'].astype(str)
 # Экспортируем Excel
