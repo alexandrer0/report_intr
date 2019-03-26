@@ -6,7 +6,8 @@ from openpyxl.styles import Border, Side, Alignment
 from openpyxl import load_workbook
 
 # Подключение к БД
-conn = ora.connect(cfg.user_db + '/' + cfg.pass_db + '@' + cfg.db)
+conn_sib = ora.connect(cfg.user_db + '/' + cfg.pass_db + '@' + cfg.db_sib)
+conn_eur = ora.connect(cfg.user_db + '/' + cfg.pass_db + '@' + cfg.db_eur)
 # Загрузка даты отчета
 ye = cfg.year
 mon = cfg.mon
@@ -41,8 +42,15 @@ path_2 += '/ДД ИНТЕРРАО в НЦЗ за ' + m[int(mon) - 1] + ' ' + ye 
 
 # Загружаем исходные данные
 dd_0 = pd.read_excel(path_00)
-query_dd = '''select distinct v.dd_number, t.trader_code st_code, v.dd_fact, v.con_fact
+query_dd_sib = '''select distinct v.dd_number, t.trader_code st_code, v.dd_fact, v.con_fact
 from FRSDB_DEV_SIB.ncz_dd_volume v, frsdb_dev_sib.trader t
+where to_char(v.target_date, 'yyyy')= :y 
+and to_char(v.target_date, 'mm')= :m
+and v.end_ver=999999999999999 and t.real_trader_id=v.station_id
+and v.target_date between t.begin_date and t.end_Date
+order by 1,2'''
+query_dd_eur = '''select distinct v.dd_number, t.trader_code st_code, v.dd_fact, v.con_fact
+from FRSDB_DEV.ncz_dd_volume v, frsdb_dev.trader t
 where to_char(v.target_date, 'yyyy')= :y 
 and to_char(v.target_date, 'mm')= :m
 and v.end_ver=999999999999999 and t.real_trader_id=v.station_id
@@ -60,13 +68,17 @@ where to_char(target_date, 'yyyy')= :y
 and to_char(target_date, 'mm')= :m
 and end_ver=999999999999999 and is_daily=0 and dir=1 
 GROUP by trunc(target_date, 'month'), section_code'''
-pf_0 = pd.read_sql(query_dd, conn, params={'y': int(ye), 'm': int(mon)})
-vc_pc = pd.read_sql(query_vc, conn, params={'y': int(ye), 'm': int(mon)})
-sec_f = pd.read_sql(query_fact, conn, params={'y': int(ye), 'm': int(mon)})
-conn.close()
+pf_sib = pd.read_sql(query_dd_sib, conn_sib, params={'y': int(ye), 'm': int(mon)})
+pf_eur = pd.read_sql(query_dd_eur, conn_eur, params={'y': int(ye), 'm': int(mon)})
+vc_pc = pd.read_sql(query_vc, conn_sib, params={'y': int(ye), 'm': int(mon)})
+sec_f = pd.read_sql(query_fact, conn_sib, params={'y': int(ye), 'm': int(mon)})
+conn_sib.close()
+conn_eur.close()
 # Создаем отчет
-pf_0.rename(columns={'DD_NUMBER': 'Номер ДД', 'ST_CODE': 'Код Станции Продавца'}, inplace=True)
-dd_1 = dd_0.merge(pf_0, 'left', on=['Номер ДД', 'Код Станции Продавца'])
+pf_sib.rename(columns={'DD_NUMBER': 'Номер ДД', 'ST_CODE': 'Код Станции Продавца'}, inplace=True)
+pf_eur.rename(columns={'DD_NUMBER': 'Номер ДД', 'ST_CODE': 'Код Станции Продавца'}, inplace=True)
+pf = pf_sib.append(pf_eur)
+dd_1 = dd_0.merge(pf, 'left', on=['Номер ДД', 'Код Станции Продавца'])
 dd_1.rename(columns={'DD_FACT': 'ДД факт, кВтч', 'CON_FACT': 'Факт общий по ГТПП/ГТП экспорта, кВт'}, inplace=True)
 dd_1.sort_values(['Номер ДД', 'Код Станции Продавца'], inplace=True)
 # Экспортируем Excel
